@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Front Desk Pre-Shift Brief</title>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root {
     --hilton-navy: #002F6C;
@@ -34,65 +34,33 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  header {
-    background: var(--hilton-navy);
-    padding: 0 32px;
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-    position: relative;
-  }
+  /* HEADER */
+  header { background: var(--hilton-navy); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 3px 12px rgba(0,0,0,0.25); position: relative; }
   .header-left { display: flex; align-items: center; gap: 16px; padding: 14px 0; }
-  .hilton-wordmark { font-family: 'Merriweather', serif; font-size: 1.5rem; color: #FFFFFF; letter-spacing: 0.12em; text-transform: uppercase; }
+  .hilton-wordmark { font-family: 'Merriweather', serif; font-size: 1.5rem; color: #fff; letter-spacing: 0.12em; text-transform: uppercase; }
   .hilton-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.25); }
-  .hotel-name { font-size: 0.95rem; color: rgba(255,255,255,0.75); cursor: pointer; font-weight: 400; }
+  .hotel-name { font-size: 0.95rem; color: rgba(255,255,255,0.75); cursor: pointer; }
   .hotel-name:hover { color: #fff; }
-  .header-right { display: flex; align-items: center; gap: 20px; }
-  .shift-badge { background: var(--hilton-gold); color: var(--hilton-navy); border-radius: 4px; padding: 5px 14px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-  .live-clock { font-size: 0.82rem; color: rgba(255,255,255,0.6); font-weight: 300; }
-  .header-accent { height: 4px; background: linear-gradient(90deg, var(--hilton-gold), var(--hilton-gold-light), var(--hilton-gold)); position: absolute; bottom: 0; left: 0; right: 0; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .live-clock { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+  .header-accent { height: 4px; background: linear-gradient(90deg,var(--hilton-gold),var(--hilton-gold-light),var(--hilton-gold)); position: absolute; bottom: 0; left: 0; right: 0; }
+  .pdf-btn { background: var(--hilton-gold); color: var(--hilton-navy); border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; white-space: nowrap; }
+  .pdf-btn:hover { background: var(--hilton-gold-light); }
+  .pdf-btn:disabled { opacity: 0.6; cursor: wait; }
 
+  /* PAGE */
   .page { padding: 28px 32px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
 
-  .section-title {
-    font-family: 'Merriweather', serif;
-    font-size: 1rem;
-    color: var(--hilton-navy);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
+  /* SECTION TITLE */
+  .section-title { font-family: 'Merriweather', serif; font-size: 1rem; color: var(--hilton-navy); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-weight: 700; }
   .section-title::before { content: ''; display: block; width: 4px; height: 20px; background: var(--hilton-gold); border-radius: 2px; flex-shrink: 0; }
-
   .edit-hint { font-size: 0.68rem; color: var(--text-light); text-align: right; margin-bottom: 10px; font-style: italic; }
 
+  /* STAT CARDS */
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
-    position: relative;
-    overflow: hidden;
-  }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); cursor: pointer; transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s; position: relative; overflow: hidden; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--hilton-blue); opacity: 0; transition: opacity 0.2s; }
   .stat-card:hover { box-shadow: var(--shadow-hover); border-color: var(--hilton-light-blue); transform: translateY(-1px); }
   .stat-card:hover::before { opacity: 1; }
@@ -103,26 +71,27 @@
   .stat-card.departures .stat-value { color: var(--red); }
   .stat-card.occupancy .stat-value { color: var(--hilton-blue); }
   .stat-card.stayscore .stat-value { color: var(--hilton-gold); }
-
   .occ-bar-wrap { margin-top: 8px; }
   .occ-bar-bg { background: var(--surface2); border-radius: 4px; height: 5px; overflow: hidden; }
-  .occ-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--hilton-blue), var(--hilton-light-blue)); transition: width 1s ease; }
+  .occ-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,var(--hilton-blue),var(--hilton-light-blue)); transition: width 1s ease; }
 
-  .vip-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); transition: box-shadow 0.2s; }
-  .vip-card:hover { box-shadow: var(--shadow-hover); }
-  .vip-card.is-vip { border-color: rgba(200,169,81,0.5); border-left: 4px solid var(--hilton-gold); background: linear-gradient(135deg,#FFFEF8 0%,#fff 100%); }
-  .vip-card.is-site { border-color: rgba(0,87,184,0.3); border-left: 4px solid var(--hilton-blue); background: linear-gradient(135deg,#F5F8FF 0%,#fff 100%); }
-  .vip-inner { padding: 15px 18px; }
-  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; margin-bottom: 8px; }
-  .badge.vip { background: var(--hilton-gold); color: var(--hilton-navy); }
-  .badge.site { background: var(--hilton-blue); color: #fff; }
-  .guest-name { font-family: 'Merriweather', serif; font-size: 1rem; color: var(--hilton-navy); margin-bottom: 6px; font-weight: 700; }
-  .guest-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.78rem; color: var(--text-muted); }
-  .guest-meta span { display: flex; align-items: center; gap: 4px; }
-  .guest-notes { margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); background: var(--surface2); border-radius: 6px; padding: 8px 12px; border-left: 3px solid var(--border-strong); font-style: italic; line-height: 1.55; }
-  .vip-card.is-vip .guest-notes { border-left-color: var(--hilton-gold); }
-  .vip-card.is-site .guest-notes { border-left-color: var(--hilton-blue); }
+  /* VIP TABLE */
+  .vip-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .vip-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .vip-table thead tr { background: var(--hilton-navy); }
+  .vip-table thead th { color: #fff; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 12px; text-align: left; white-space: nowrap; }
+  .vip-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+  .vip-table tbody tr:last-child { border-bottom: none; }
+  .vip-table tbody tr:hover { background: var(--surface2); }
+  .vip-table tbody td { padding: 9px 12px; color: var(--text); vertical-align: top; }
+  .vip-table tbody td.room-num { font-weight: 700; color: var(--hilton-navy); white-space: nowrap; }
+  .vip-table tbody td.guest-nm { font-weight: 600; }
+  .vip-table tbody td.notes-col { color: var(--text-muted); font-size: 0.8rem; font-style: italic; }
+  .status-tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; background: var(--green-bg); color: var(--green); border: 1px solid rgba(26,122,74,0.2); white-space: nowrap; }
+  .vip-row-del { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; transition: color 0.15s, background 0.15s; }
+  .vip-row-del:hover { color: var(--red); background: var(--red-bg); }
 
+  /* GROUP CARDS */
   .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; }
   .group-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; transition: background 0.15s; user-select: none; }
   .group-header:hover { background: var(--surface2); }
@@ -142,6 +111,7 @@
   .group-detail-value { font-size: 0.85rem; color: var(--text); font-weight: 500; }
   .group-notes-block { margin-top: 12px; background: var(--surface2); border-radius: 8px; padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; border-left: 3px solid var(--hilton-blue); white-space: pre-line; }
 
+  /* ANNOUNCEMENTS */
   .announcement { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 18px; margin-bottom: 12px; box-shadow: var(--shadow); position: relative; }
   .announcement.urgent { border-color: rgba(192,57,43,0.35); background: var(--red-bg); border-left: 4px solid var(--red); }
   .ann-priority { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 4px; margin-bottom: 7px; display: inline-block; }
@@ -155,8 +125,9 @@
   .ann-delete { position: absolute; top: 13px; right: 14px; background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 0.85rem; padding: 4px; transition: color 0.2s; }
   .ann-delete:hover { color: var(--red); }
 
+  /* FORMS */
   .add-form { background: var(--surface2); border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: 20px 22px; margin-top: 16px; }
-  .add-form-title { font-family: 'Merriweather', serif; font-size: 0.88rem; color: var(--hilton-navy); margin-bottom: 16px; font-weight: 700; }
+  .add-form-title { font-family: 'Merriweather', serif; font-size: 0.88rem; color: var(--hilton-navy); margin-bottom: 14px; font-weight: 700; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   .form-group { display: flex; flex-direction: column; gap: 5px; }
   .form-group.full { grid-column: 1/-1; }
@@ -164,7 +135,6 @@
   input, textarea, select { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'Source Sans 3', sans-serif; font-size: 0.88rem; padding: 9px 12px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
   input:focus, textarea:focus, select:focus { border-color: var(--hilton-blue); box-shadow: 0 0 0 3px rgba(0,87,184,0.1); }
   textarea { resize: vertical; min-height: 75px; }
-  select option { background: #fff; }
 
   .btn { background: var(--hilton-navy); color: #fff; border: none; border-radius: 7px; padding: 10px 22px; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.1s; }
   .btn:hover { background: var(--hilton-blue); }
@@ -174,26 +144,10 @@
   .btn.danger { background: var(--red); }
   .btn.danger:hover { background: #a93226; }
 
-  .empty { text-align: center; padding: 30px; color: var(--text-light); font-size: 0.85rem; font-style: italic; }
+  .empty { text-align: center; padding: 24px; color: var(--text-light); font-size: 0.85rem; font-style: italic; }
   .settings-row { display: flex; gap: 16px; flex-wrap: wrap; }
   .settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); flex: 1; min-width: 280px; }
   .settings-card-title { font-family: 'Merriweather', serif; font-size: 0.88rem; color: var(--hilton-navy); font-weight: 700; margin-bottom: 16px; }
-
-  .pdf-btn {
-    background: var(--hilton-gold);
-    color: var(--hilton-navy);
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Source Sans 3', sans-serif;
-    transition: background 0.2s;
-  }
-  .pdf-btn:hover { background: var(--hilton-gold-light); }
 
   @media (max-width: 700px) {
     .page { padding: 16px; gap: 28px; }
@@ -202,6 +156,7 @@
     .stats-grid { grid-template-columns: repeat(2,1fr); }
     .hilton-wordmark { font-size: 1.1rem; }
     .settings-row { flex-direction: column; }
+    .vip-table { font-size: 0.75rem; }
   }
 </style>
 </head>
@@ -214,7 +169,7 @@
     <div class="hotel-name" id="hotelName" onclick="editHotelName()" title="Click to edit">Grand Meridian Hotel</div>
   </div>
   <div class="header-right">
-    <button class="pdf-btn" onclick="savePDF()" title="Save as PDF">⬇ Save PDF</button>
+    <button class="pdf-btn" id="pdfBtn" onclick="savePDF()">⬇ Save PDF</button>
     <div class="live-clock" id="clock"></div>
   </div>
   <div class="header-accent"></div>
@@ -222,7 +177,7 @@
 
 <div class="page">
 
-  <!-- 1. STATS -->
+  <!-- 1. TODAY'S OVERVIEW -->
   <div>
     <div class="section-title">Today's Overview</div>
     <div class="edit-hint">Click any card to edit the value</div>
@@ -302,44 +257,45 @@
     </div>
   </div>
 
-  <!-- 4. VIP & SITE VISITS -->
+  <!-- 4. VIP ARRIVALS -->
   <div>
     <div class="section-title">VIP Arrivals &amp; Site Visits</div>
-    <div id="vip-list"></div>
+
+    <div id="vip-table-container"></div>
 
     <!-- PASTE FROM EXCEL -->
     <div class="add-form">
       <div class="add-form-title">📋 Paste from VIP Report (Excel)</div>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;line-height:1.55">
-        In Excel, select your data rows (no header needed) with columns in this order:
-        <strong style="color:var(--hilton-navy)">Room # / Room Type / Room Status / Guest Name / Notes</strong> — then copy and paste below.
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+        In Excel, select your data rows <strong style="color:var(--hilton-navy)">(no header row)</strong> and copy. Columns should be in this order:<br>
+        <strong style="color:var(--hilton-navy)">Room # &nbsp;·&nbsp; Room Type &nbsp;·&nbsp; Status &nbsp;·&nbsp; Arrival &nbsp;·&nbsp; Guest Name &nbsp;·&nbsp; Notes (optional)</strong>
       </p>
       <div class="form-group" style="margin-bottom:12px">
         <label>Paste Excel Data Here</label>
-        <textarea id="vip-paste" rows="6" placeholder="Paste copied Excel rows here — each row becomes a VIP entry automatically.&#10;&#10;Example:&#10;1201&#09;King Suite&#09;Clean&#09;Smith, John&#09;Diamond member, champagne amenity&#10;305&#09;Standard King&#09;Inspected&#09;Jones, Mary&#09;Early check-in requested"></textarea>
+        <textarea id="vip-paste" rows="5" placeholder="Paste copied Excel rows here…&#10;&#10;879&#09;Q2RL&#09;OD&#09;4/10/2026&#09;ARNOLD, DORIS&#09;Diamond – champagne amenity&#10;1928&#09;K1RG&#09;OD&#09;4/10/2026&#09;MORALES, EDER"></textarea>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <button class="btn" onclick="importFromPaste()">Import Rows</button>
+        <button class="btn secondary" style="font-size:0.75rem;padding:7px 16px" onclick="clearVIPs()">Clear All VIPs</button>
         <span id="paste-status" style="font-size:0.78rem;color:var(--green);font-weight:600"></span>
       </div>
     </div>
 
-    <!-- MANUAL ENTRY (collapsible) -->
+    <!-- MANUAL SINGLE ENTRY -->
     <div style="margin-top:10px">
-      <button class="btn secondary" style="font-size:0.75rem;padding:7px 16px" onclick="toggleManual()">＋ Add Single Entry Manually</button>
+      <button class="btn secondary" style="font-size:0.75rem;padding:7px 16px" onclick="toggleManual()">＋ Add Single Row Manually</button>
       <div id="manual-vip-form" style="display:none">
         <div class="add-form" style="margin-top:10px">
           <div class="add-form-title">Manual Entry</div>
           <div class="form-grid">
-            <div class="form-group"><label>Guest Name</label><input type="text" id="vip-name" placeholder="e.g. Ms. Jane Smith"></div>
-            <div class="form-group"><label>Type</label><select id="vip-type"><option value="vip">VIP Arrival</option><option value="site">Site Visit</option></select></div>
-            <div class="form-group"><label>Room # / Room Type</label><input type="text" id="vip-room" placeholder="e.g. 1201 – King Suite"></div>
-            <div class="form-group"><label>Room Status</label><input type="text" id="vip-status" placeholder="e.g. Clean, Inspected"></div>
-            <div class="form-group"><label>Honors Status / Tier</label><input type="text" id="vip-tier" placeholder="e.g. Diamond, Lifetime Gold"></div>
-            <div class="form-group"><label>Hosted By</label><input type="text" id="vip-host" placeholder="e.g. Sales, GM"></div>
-            <div class="form-group full"><label>Notes</label><textarea id="vip-notes" placeholder="e.g. Amenity in room, late arrival, dietary needs..."></textarea></div>
+            <div class="form-group"><label>Room #</label><input type="text" id="vip-room" placeholder="e.g. 1201"></div>
+            <div class="form-group"><label>Room Type</label><input type="text" id="vip-type-txt" placeholder="e.g. K1RG"></div>
+            <div class="form-group"><label>Status</label><input type="text" id="vip-status" placeholder="e.g. OD, OR, Clean"></div>
+            <div class="form-group"><label>Arrival</label><input type="text" id="vip-arrival" placeholder="e.g. 4/10/2026"></div>
+            <div class="form-group"><label>Guest Name</label><input type="text" id="vip-name" placeholder="e.g. SMITH, JOHN"></div>
+            <div class="form-group"><label>Notes</label><input type="text" id="vip-notes" placeholder="e.g. Diamond, late arrival"></div>
           </div>
-          <button class="btn" onclick="addVIP()">Add Entry</button>
+          <button class="btn" onclick="addVIPManual()">Add Row</button>
         </div>
       </div>
     </div>
@@ -358,147 +314,107 @@
       </div>
       <div class="settings-card">
         <div class="settings-card-title" style="color:var(--red)">Reset Data</div>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;line-height:1.55">Clear all entries including stats, VIPs, groups, and announcements for a new shift.</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;line-height:1.55">Clear all entries including stats, VIPs, groups, and announcements for a new day.</p>
         <button class="btn danger" onclick="resetAll()">Reset All Data</button>
       </div>
     </div>
   </div>
 
-</div>
+</div><!-- /page -->
 
 <script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
 let state = JSON.parse(localStorage.getItem('hilton_preshift')||'null') || {
-  hotel:'Grand Meridian Hotel', shift:'Morning Shift',
-  stats:{arrivals:'42',departures:'38',stayovers:'127',occupancy:'84',rooms:'200',oos:'3',stayscore:'87',honors:'14'},
-  vips:[
-    {id:1,name:'Mr. Robert Harrington III',type:'vip',room:'1602 – Presidential Suite',roomStatus:'Inspected',tier:'Diamond',host:'GM',notes:'Champagne & strawberries pre-placed. Confirm 1602 HVAC checked — previous AC complaint. Do not disturb until 6 PM.'},
-    {id:2,name:'Apex Capital Partners',type:'site',room:'N/A',roomStatus:'',tier:'',host:'Sales – Maria Chen',notes:'Touring Ballroom A & penthouse suite. Coffee service in Board Room 1. Proposal follow-up by EOD.'},
+  hotel: 'Grand Meridian Hotel',
+  stats: {arrivals:'42',departures:'38',stayovers:'127',occupancy:'84',oos:'3',stayscore:'87',honors:'14'},
+  vips: [
+    {id:1,room:'879',roomType:'Q2RL',status:'OD',arrival:'4/10/2026',name:'ARNOLD, DORIS',notes:'Diamond member'},
+    {id:2,room:'1928',roomType:'K1RG',status:'OD',arrival:'4/10/2026',name:'MORALES, EDER',notes:'Champagne amenity pre-placed'},
+    {id:3,room:'1175',roomType:'Q2RL',status:'OD',arrival:'4/10/2026',name:'SEAMON, ALEX',notes:''},
   ],
-  groups:[
-    {id:1,name:'National Educators Conference',status:'inhouse',arrival:'Apr 9',departure:'Apr 12',rooms:'85 rooms',contact:'Linda Park – (202) 555-3456',space:'Grand Ballroom + Breakout Rooms 3–6',fb:'Continental Breakfast 7–9AM, Lunch Buffet 12–1:30PM daily',notes:'Badge pickup at dedicated foyer table. AV team on site 8AM daily. Room drops complete.\nMaster billing: Acct #4421. Room pickups on individual folios.'},
-    {id:2,name:'Lakeview Medical Group Retreat',status:'upcoming',arrival:'Apr 13',departure:'Apr 15',rooms:'28 rooms',contact:'Dr. Sarah Weiss – (312) 555-0987',space:'Board Room 2',fb:'Welcome reception Apr 13, 7PM – Terrace Bar',notes:'Requesting early check-in for 10 rooms. All rooms king non-smoking. Billing on group master.'},
+  groups: [
+    {id:1,name:'National Educators Conference',status:'inhouse',arrival:'Apr 9',departure:'Apr 12',rooms:'85 rooms',contact:'Linda Park – (202) 555-3456',space:'Grand Ballroom + Breakout Rooms 3–6',fb:'Continental Breakfast 7–9AM, Lunch Buffet 12–1:30PM daily',notes:'Badge pickup at dedicated foyer table. AV team on site 8AM daily.\nMaster billing: Acct #4421. Room pickups on individual folios.'},
+    {id:2,name:'Lakeview Medical Group Retreat',status:'upcoming',arrival:'Apr 13',departure:'Apr 15',rooms:'28 rooms',contact:'Dr. Sarah Weiss – (312) 555-0987',space:'Board Room 2',fb:'Welcome reception Apr 13, 7PM – Terrace Bar',notes:'Early check-in for 10 rooms. All rooms king non-smoking. Billing on group master.'},
   ],
-  announcements:[
+  announcements: [
     {id:1,title:'Elevator 2 – Out of Service',priority:'urgent',body:'Elevator 2 in the North Tower is out of service until 6 PM today. Direct guests to elevators 1 & 3. Engineering is on site.',author:'Chief Engineer',time:'Today, 6:00 AM'},
     {id:2,title:'April Honors Sign-Up Challenge',priority:'info',body:'April Honors challenge runs through the 30th. Top performer earns a $150 hotel gift card. Log all enrollments in OnQ under the April Promo code.',author:'Front Office Manager',time:'Apr 9, 4:00 PM'},
   ]
 };
-function save(){ localStorage.setItem('hilton_preshift',JSON.stringify(state)); }
 
+function save(){ localStorage.setItem('hilton_preshift', JSON.stringify(state)); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── CLOCK ────────────────────────────────────────────────────────────────────
 function tick(){
   const n=new Date();
-  document.getElementById('clock').textContent=n.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'  '+n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('clock').textContent =
+    n.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) + '  ' +
+    n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 tick(); setInterval(tick,15000);
 
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-async function savePDF(){
-  const btn = document.querySelector('.pdf-btn');
-  const originalText = btn.textContent;
-  btn.textContent = '⏳ Generating...';
-  btn.disabled = true;
-
-  // Expand all group bodies for PDF capture
-  const groupBodies = document.querySelectorAll('.group-body');
-  const groupBodyStates = [];
-  groupBodies.forEach(gb => { groupBodyStates.push(gb.style.display); gb.style.display = 'block'; });
-
-  // Hide UI-only elements
-  const hideEls = document.querySelectorAll('.add-form, .btn.secondary, .ann-delete, .edit-hint, #manual-vip-form, .settings-row, .pdf-btn');
-  hideEls.forEach(el => el.style.visibility = 'hidden');
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const pageEl = document.querySelector('.page');
-
-    const canvas = await html2canvas(pageEl, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#F0F3F8',
-      logging: false,
-      windowWidth: 1200
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = pdfWidth / (imgWidth / 2); // account for scale:2
-    const scaledHeight = (imgHeight / 2) * ratio;
-
-    let yOffset = 0;
-    const pageHeightPx = (pdfHeight / ratio) * 2; // canvas px per PDF page
-
-    let pageNum = 0;
-    while (yOffset < imgHeight) {
-      if (pageNum > 0) pdf.addPage();
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = imgWidth;
-      sliceCanvas.height = Math.min(pageHeightPx, imgHeight - yOffset);
-      const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, yOffset, imgWidth, sliceCanvas.height, 0, 0, imgWidth, sliceCanvas.height);
-      const sliceData = sliceCanvas.toDataURL('image/png');
-      const sliceHeightMm = (sliceCanvas.height / 2) * ratio;
-      pdf.addImage(sliceData, 'PNG', 0, 0, pdfWidth, sliceHeightMm);
-      yOffset += pageHeightPx;
-      pageNum++;
-    }
-
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}).replace(/\//g,'-');
-    pdf.save(`PreShift-Brief-${dateStr}.pdf`);
-
-  } catch(err) {
-    alert('PDF generation failed. Please try again.');
-    console.error(err);
-  } finally {
-    // Restore everything
-    groupBodies.forEach((gb, i) => gb.style.display = groupBodyStates[i]);
-    hideEls.forEach(el => el.style.visibility = '');
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function renderAll(){
-  document.getElementById('hotelName').textContent=state.hotel;
+  document.getElementById('hotelName').textContent = state.hotel;
+  document.getElementById('set-hotelname').value = state.hotel;
+
   Object.entries(state.stats).forEach(([k,v])=>{
     const el=document.getElementById('val-'+k);
-    if(el) el.textContent=k==='occupancy'?v+'%':v;
+    if(el) el.textContent = k==='occupancy' ? v+'%' : v;
   });
-  document.getElementById('occBar').style.width=(parseInt(state.stats.occupancy)||0)+'%';
+  document.getElementById('occBar').style.width = (parseInt(state.stats.occupancy)||0)+'%';
 
-  const vl=document.getElementById('vip-list');
-  vl.innerHTML=state.vips.length?state.vips.map(vipCard).join(''):'<div class="empty">No VIP arrivals or site visits added yet.</div>';
+  renderVIPTable();
 
   const gl=document.getElementById('group-list');
-  gl.innerHTML=state.groups.length?state.groups.map(groupCard).join(''):'<div class="empty">No groups added yet.</div>';
+  gl.innerHTML = state.groups.length ? state.groups.map(groupCard).join('') : '<div class="empty">No groups added yet.</div>';
 
   const al=document.getElementById('ann-list');
-  al.innerHTML=state.announcements.length?state.announcements.map(annCard).join(''):'<div class="empty">No announcements posted.</div>';
-
-  document.getElementById('set-hotelname').value=state.hotel;
+  al.innerHTML = state.announcements.length ? state.announcements.map(annCard).join('') : '<div class="empty">No announcements posted.</div>';
 }
 
-function vipCard(v){
-  return `<div class="vip-card ${v.type==='vip'?'is-vip':'is-site'}"><div class="vip-inner">
-    <div class="badge ${v.type==='vip'?'vip':'site'}">${v.type==='vip'?'★ VIP':'◈ Site Visit'}</div>
-    <div class="guest-name">${esc(v.name)}</div>
-    <div class="guest-meta">
-      ${v.room?`<span>🏨 ${esc(v.room)}</span>`:''}
-      ${v.roomStatus?`<span style="background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,74,0.25);padding:2px 7px;border-radius:4px;font-weight:600;font-size:0.7rem">${esc(v.roomStatus)}</span>`:''}
-      ${v.tier?`<span>✦ ${esc(v.tier)}</span>`:''}
-      ${v.host?`<span>👤 ${esc(v.host)}</span>`:''}
-    </div>
-    ${v.notes?`<div class="guest-notes">${esc(v.notes)}</div>`:''}
-    <button class="btn secondary" style="margin-top:12px;padding:5px 13px;font-size:0.7rem" onclick="removeVIP(${v.id})">Remove</button>
-  </div></div>`;
+// ─── VIP TABLE ────────────────────────────────────────────────────────────────
+function renderVIPTable(){
+  const c = document.getElementById('vip-table-container');
+  if(!state.vips.length){
+    c.innerHTML = '<div class="empty">No VIP entries yet. Paste from Excel or add manually below.</div>';
+    return;
+  }
+  c.innerHTML = `
+    <div class="vip-table-wrap">
+      <table class="vip-table">
+        <thead>
+          <tr>
+            <th>Room #</th>
+            <th>Room Type</th>
+            <th>Status</th>
+            <th>Arrival</th>
+            <th>Guest Name</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${state.vips.map(v=>`
+            <tr>
+              <td class="room-num">${esc(v.room)}</td>
+              <td>${esc(v.roomType)}</td>
+              <td><span class="status-tag">${esc(v.status)}</span></td>
+              <td>${esc(v.arrival)}</td>
+              <td class="guest-nm">${esc(v.name)}</td>
+              <td class="notes-col">${esc(v.notes)}</td>
+              <td><button class="vip-row-del" onclick="removeVIP(${v.id})" title="Remove">✕</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
+function removeVIP(id){ state.vips=state.vips.filter(v=>v.id!==id); save(); renderAll(); }
+function clearVIPs(){ if(confirm('Clear all VIP entries?')){ state.vips=[]; save(); renderAll(); } }
+
+// ─── GROUP CARDS ──────────────────────────────────────────────────────────────
 function groupCard(g){
   return `<div class="group-card" id="gc-${g.id}">
     <div class="group-header" onclick="toggleGroup(${g.id})">
@@ -517,7 +433,9 @@ function groupCard(g){
     </div>
   </div>`;
 }
+function toggleGroup(id){ document.getElementById('gc-'+id).classList.toggle('open'); }
 
+// ─── ANN CARDS ────────────────────────────────────────────────────────────────
 function annCard(a){
   return `<div class="announcement ${a.priority==='urgent'?'urgent':''}">
     <button class="ann-delete" onclick="removeAnn(${a.id})">✕</button>
@@ -528,26 +446,37 @@ function annCard(a){
   </div>`;
 }
 
-function toggleGroup(id){ document.getElementById('gc-'+id).classList.toggle('open'); }
-
+// ─── EDIT STATS ───────────────────────────────────────────────────────────────
 function editStat(key){
+  if(document.getElementById('editing-'+key)) return;
   const el=document.getElementById('val-'+key);
   const cur=state.stats[key];
   const inp=document.createElement('input');
+  inp.id='editing-'+key;
   inp.value=cur;
   inp.style.cssText='font-family:Merriweather,serif;font-size:2.2rem;color:var(--hilton-navy);background:transparent;border:none;border-bottom:2px solid var(--hilton-blue);border-radius:0;padding:0;width:100%;line-height:1;outline:none;box-shadow:none;';
-  el.replaceWith(inp); inp.focus(); inp.select();
+  el.style.display='none';
+  el.parentNode.insertBefore(inp, el);
+  inp.focus(); inp.select();
+  let committed=false;
   const commit=()=>{
+    if(committed) return;
+    committed=true;
     const val=inp.value.replace('%','').trim()||cur;
     state.stats[key]=val; save();
-    inp.replaceWith(el);
     el.textContent=key==='occupancy'?val+'%':val;
+    el.style.display='';
+    inp.remove();
     if(key==='occupancy') document.getElementById('occBar').style.width=(parseInt(val)||0)+'%';
   };
   inp.onblur=commit;
-  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=cur;inp.blur();}};
+  inp.onkeydown=e=>{
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ committed=true; el.style.display=''; inp.remove(); }
+  };
 }
 
+// ─── VIP IMPORT / ADD ────────────────────────────────────────────────────────
 function toggleManual(){
   const f=document.getElementById('manual-vip-form');
   f.style.display=f.style.display==='none'?'block':'none';
@@ -560,40 +489,43 @@ function importFromPaste(){
   let count=0;
   lines.forEach(line=>{
     const cols=line.split(/\t/);
-    if(cols.length<1) return;
-    const roomNum=(cols[0]||'').trim();
+    const room=(cols[0]||'').trim();
     const roomType=(cols[1]||'').trim();
-    const roomStatus=(cols[2]||'').trim();
-    const guestName=(cols[3]||'').trim();
-    const notes=(cols[4]||'').trim();
-    if(!guestName && !roomNum) return;
-    const room=[roomNum,roomType].filter(Boolean).join(' – ');
-    state.vips.push({id:Date.now()+count,name:guestName||'(No name)',type:'vip',room,roomStatus,tier:'',host:'',notes});
+    const status=(cols[2]||'').trim();
+    const arrival=(cols[3]||'').trim();
+    const name=(cols[4]||'').trim();
+    const notes=(cols[5]||'').trim();
+    if(!name && !room) return;
+    state.vips.push({id:Date.now()+count, room, roomType, status, arrival, name:name||'(No name)', notes});
     count++;
   });
-  if(count===0){alert('No valid rows found. Make sure columns are tab-separated (copy directly from Excel).');return;}
+  if(count===0){alert('No valid rows found. Copy directly from Excel — columns must be tab-separated.');return;}
   document.getElementById('vip-paste').value='';
-  document.getElementById('paste-status').textContent=`✓ ${count} entr${count===1?'y':'ies'} imported`;
+  document.getElementById('paste-status').textContent=`✓ ${count} row${count===1?'':'s'} imported`;
   setTimeout(()=>document.getElementById('paste-status').textContent='',4000);
   save(); renderAll();
 }
 
-function addVIP(){
+function addVIPManual(){
   const name=document.getElementById('vip-name').value.trim();
-  if(!name) return alert('Please enter a name.');
-  state.vips.unshift({id:Date.now(),name,type:document.getElementById('vip-type').value,
-    room:document.getElementById('vip-room').value.trim(),
-    roomStatus:document.getElementById('vip-status').value.trim(),
-    tier:document.getElementById('vip-tier').value.trim(),host:document.getElementById('vip-host').value.trim(),
-    notes:document.getElementById('vip-notes').value.trim()});
-  ['vip-name','vip-room','vip-status','vip-tier','vip-host','vip-notes'].forEach(id=>document.getElementById(id).value='');
+  const room=document.getElementById('vip-room').value.trim();
+  if(!name && !room){alert('Please enter at least a room number or guest name.');return;}
+  state.vips.push({
+    id:Date.now(),
+    room, roomType:document.getElementById('vip-type-txt').value.trim(),
+    status:document.getElementById('vip-status').value.trim(),
+    arrival:document.getElementById('vip-arrival').value.trim(),
+    name:name||'(No name)',
+    notes:document.getElementById('vip-notes').value.trim()
+  });
+  ['vip-room','vip-type-txt','vip-status','vip-arrival','vip-name','vip-notes'].forEach(id=>document.getElementById(id).value='');
   save(); renderAll();
 }
-function removeVIP(id){state.vips=state.vips.filter(v=>v.id!==id);save();renderAll();}
 
+// ─── ADD / REMOVE ─────────────────────────────────────────────────────────────
 function addGroup(){
   const name=document.getElementById('g-name').value.trim();
-  if(!name) return alert('Please enter a group name.');
+  if(!name){alert('Please enter a group name.');return;}
   state.groups.unshift({id:Date.now(),name,status:document.getElementById('g-status').value,
     arrival:document.getElementById('g-arrival').value.trim(),departure:document.getElementById('g-departure').value.trim(),
     rooms:document.getElementById('g-rooms').value.trim(),contact:document.getElementById('g-contact').value.trim(),
@@ -606,7 +538,7 @@ function removeGroup(id){state.groups=state.groups.filter(g=>g.id!==id);save();r
 
 function addAnnouncement(){
   const title=document.getElementById('ann-title').value.trim();
-  if(!title) return alert('Please enter a title.');
+  if(!title){alert('Please enter a title.');return;}
   const now=new Date();
   state.announcements.unshift({id:Date.now(),title,priority:document.getElementById('ann-priority').value,
     body:document.getElementById('ann-body').value.trim(),author:document.getElementById('ann-author').value.trim(),
@@ -616,6 +548,7 @@ function addAnnouncement(){
 }
 function removeAnn(id){state.announcements=state.announcements.filter(a=>a.id!==id);save();renderAll();}
 
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
 function saveSettings(){
   state.hotel=document.getElementById('set-hotelname').value.trim()||state.hotel;
   save(); renderAll();
@@ -626,10 +559,238 @@ function editHotelName(){
 }
 function resetAll(){
   if(confirm('Reset ALL data? This cannot be undone.')){
-    localStorage.removeItem('hilton_preshift');location.reload();
+    localStorage.removeItem('hilton_preshift'); location.reload();
   }
 }
 
+// ─── PDF (text-based, tiny file size) ────────────────────────────────────────
+function savePDF(){
+  const btn=document.getElementById('pdfBtn');
+  btn.textContent='⏳ Building...'; btn.disabled=true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W = doc.internal.pageSize.getWidth();
+    const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const dateFile = new Date().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}).replace(/\//g,'-');
+
+    // ── helpers ──
+    const navy=[0,47,108], gold=[200,169,81], white=[255,255,255], lightgray=[240,243,248], midgray=[90,112,144], darktext=[26,42,58], red=[192,57,43], green=[26,122,74];
+    let y=0;
+
+    function checkPage(needed=10){
+      if(y+needed>270){ doc.addPage(); y=14; }
+    }
+
+    function sectionHeader(title){
+      checkPage(12);
+      doc.setFillColor(...navy);
+      doc.rect(0,y,W,8,'F');
+      doc.setFillColor(...gold);
+      doc.rect(0,y,3,8,'F');
+      doc.setTextColor(...white);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text(title.toUpperCase(), 7, y+5.5);
+      y+=12;
+    }
+
+    function wrap(text, maxW, fontSize=8){
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(String(text||''), maxW);
+    }
+
+    // ── HEADER BANNER ──
+    doc.setFillColor(...navy);
+    doc.rect(0,0,W,18,'F');
+    doc.setFillColor(...gold);
+    doc.rect(0,16,W,2,'F');
+    doc.setTextColor(...white);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.text('HILTON', 10, 10);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.text(state.hotel, 33, 10);
+    doc.setTextColor(...gold);
+    doc.setFont('helvetica','italic');
+    doc.setFontSize(8);
+    doc.text('Front Desk Pre-Shift Brief  ·  '+today, 10, 15);
+    y=24;
+
+    // ── STATS ──
+    sectionHeader("Today's Overview");
+    const statKeys=[
+      {k:'arrivals',label:'Arrivals'},{k:'departures',label:'Departures'},
+      {k:'stayovers',label:'Stayovers'},{k:'occupancy',label:'Occupancy',pct:true},
+      {k:'oos',label:'Out of Service'},{k:'stayscore',label:'Stay Score'},
+      {k:'honors',label:'Honors Sign Ups (MTD)'}
+    ];
+    const cols=4, cellW=(W-20)/cols, cellH=16;
+    statKeys.forEach((s,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      if(col===0 && i>0) checkPage(cellH+2);
+      const cx=10+col*cellW, cy=y+row*cellH;
+      doc.setFillColor(...lightgray);
+      doc.roundedRect(cx,cy,cellW-2,cellH-1,1,1,'F');
+      doc.setDrawColor(...[200,213,232]);
+      doc.roundedRect(cx,cy,cellW-2,cellH-1,1,1,'S');
+      doc.setTextColor(...midgray);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(6);
+      doc.text(s.label.toUpperCase(), cx+3, cy+4);
+      doc.setTextColor(...navy);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(13);
+      const val=(state.stats[s.k]||'—')+(s.pct?'%':'');
+      doc.text(val, cx+3, cy+12);
+    });
+    const statRows=Math.ceil(statKeys.length/cols);
+    y+=statRows*cellH+6;
+
+    // ── GROUPS ──
+    if(state.groups.length){
+      sectionHeader('Groups — In House & Upcoming');
+      state.groups.forEach(g=>{
+        checkPage(30);
+        // group title bar
+        doc.setFillColor(235,240,248);
+        doc.rect(10,y,W-20,7,'F');
+        doc.setDrawColor(...[200,213,232]);
+        doc.rect(10,y,W-20,7,'S');
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(...navy);
+        doc.text(g.name, 13, y+5);
+        const pill=g.status==='inhouse'?'IN HOUSE':'UPCOMING';
+        const pillColor=g.status==='inhouse'?green:navy;
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(6);
+        doc.setTextColor(...pillColor);
+        doc.text(pill, W-20, y+5, {align:'right'});
+        y+=9;
+        // detail grid
+        const details=[
+          g.arrival&&g.departure?{l:'Dates',v:g.arrival+' – '+g.departure}:null,
+          g.rooms?{l:'Room Block',v:g.rooms}:null,
+          g.contact?{l:'Contact',v:g.contact}:null,
+          g.space?{l:'Meeting Space',v:g.space}:null,
+          g.fb?{l:'F&B',v:g.fb}:null,
+        ].filter(Boolean);
+        const dcols=2, dw=(W-22)/dcols;
+        details.forEach((d,di)=>{
+          const dc=di%dcols, dr=Math.floor(di/dcols);
+          if(dc===0&&di>0) checkPage(8);
+          const dx=11+dc*dw, dy2=y+dr*8;
+          doc.setFont('helvetica','bold');
+          doc.setFontSize(6.5);
+          doc.setTextColor(...midgray);
+          doc.text(d.l.toUpperCase()+': ', dx, dy2+4);
+          const lw=doc.getTextWidth(d.l.toUpperCase()+': ');
+          doc.setFont('helvetica','normal');
+          doc.setTextColor(...darktext);
+          const lines=wrap(d.v,dw-lw-2,6.5);
+          doc.text(lines[0]||'', dx+lw, dy2+4);
+        });
+        const detailRows=Math.ceil(details.length/dcols);
+        y+=detailRows*8+2;
+        if(g.notes){
+          checkPage(10);
+          doc.setFillColor(240,243,248);
+          const noteLines=wrap(g.notes,W-28,7.5);
+          const noteH=noteLines.length*4.5+5;
+          doc.rect(10,y,W-20,noteH,'F');
+          doc.setDrawColor(0,87,184);
+          doc.line(10,y,10,y+noteH);
+          doc.setFont('helvetica','italic');
+          doc.setFontSize(7.5);
+          doc.setTextColor(...midgray);
+          noteLines.forEach((l,li)=>doc.text(l,13,y+4+li*4.5));
+          y+=noteH+3;
+        }
+        y+=4;
+      });
+    }
+
+    // ── ANNOUNCEMENTS ──
+    if(state.announcements.length){
+      sectionHeader('Internal Announcements');
+      state.announcements.forEach(a=>{
+        checkPage(20);
+        const isUrgent=a.priority==='urgent';
+        const bodyLines=wrap(a.body,W-30,8);
+        const cardH=bodyLines.length*4.5+16;
+        doc.setFillColor(isUrgent?255:248,isUrgent?245:250,isUrgent?245:255);
+        doc.rect(10,y,W-20,cardH,'F');
+        doc.setDrawColor(isUrgent?192:200,isUrgent?57:213,isUrgent?43:232);
+        doc.rect(10,y,W-20,cardH,'S');
+        if(isUrgent){doc.setFillColor(...red);doc.rect(10,y,3,cardH,'F');}
+        // priority badge
+        const badgeX=13+(isUrgent?3:0);
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(6);
+        doc.setTextColor(...(isUrgent?red:[0,87,184]));
+        doc.text(a.priority.toUpperCase(), badgeX, y+5);
+        // title
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...(isUrgent?red:navy));
+        doc.text(a.title, badgeX, y+10);
+        // body
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.setTextColor(...midgray);
+        bodyLines.forEach((l,li)=>doc.text(l,badgeX,y+15+li*4.5));
+        // meta
+        if(a.author||a.time){
+          doc.setFontSize(6.5);
+          doc.setTextColor(138,154,176);
+          doc.text((a.author?'Posted by '+a.author:'')+(a.time?' · '+a.time:''),badgeX,y+cardH-2);
+        }
+        y+=cardH+4;
+      });
+    }
+
+    // ── VIP TABLE ──
+    if(state.vips.length){
+      sectionHeader('VIP Arrivals & Site Visits');
+      doc.autoTable({
+        startY: y,
+        margin:{left:10,right:10},
+        head:[['Room #','Room Type','Status','Arrival','Guest Name','Notes']],
+        body: state.vips.map(v=>[v.room,v.roomType,v.status,v.arrival,v.name,v.notes||'']),
+        headStyles:{fillColor:navy,textColor:white,fontSize:7,fontStyle:'bold',cellPadding:3},
+        bodyStyles:{fontSize:7.5,cellPadding:3,textColor:darktext},
+        alternateRowStyles:{fillColor:lightgray},
+        columnStyles:{
+          0:{cellWidth:16,fontStyle:'bold'},
+          1:{cellWidth:20},
+          2:{cellWidth:16},
+          3:{cellWidth:22},
+          4:{cellWidth:38,fontStyle:'bold'},
+          5:{cellWidth:'auto'},
+        },
+        didParseCell(data){
+          if(data.section==='body'&&data.column.index===2){
+            data.cell.styles.textColor=green;
+            data.cell.styles.fontStyle='bold';
+          }
+        }
+      });
+      y=doc.lastAutoTable.finalY+6;
+    }
+
+    doc.save(`PreShift-Brief-${dateFile}.pdf`);
+  } catch(err){
+    alert('PDF generation failed: '+err.message);
+    console.error(err);
+  } finally {
+    btn.textContent='⬇ Save PDF'; btn.disabled=false;
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 renderAll();
 </script>
 </body>
