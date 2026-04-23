@@ -571,217 +571,258 @@ function savePDF(){
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const W = doc.internal.pageSize.getWidth();
+    const PW = doc.internal.pageSize.getWidth();   // 210
+    const PH = doc.internal.pageSize.getHeight();  // 297
+    const ML = 10, MR = 10, MT = 14, MB = 16;
+    const CW = PW - ML - MR;                       // usable width
+    const BOTTOM = PH - MB;                        // last safe y
     const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
     const dateFile = new Date().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}).replace(/\//g,'-');
 
-    // ── helpers ──
-    const navy=[0,47,108], gold=[200,169,81], white=[255,255,255], lightgray=[240,243,248], midgray=[90,112,144], darktext=[26,42,58], red=[192,57,43], green=[26,122,74];
-    let y=0;
+    // ── colour palettes ──
+    const C = {
+      navy:[0,47,108], blue:[0,87,184], gold:[200,169,81],
+      white:[255,255,255], offwhite:[240,243,248],
+      text:[26,42,58], muted:[90,112,144], faint:[138,154,176],
+      border:[200,213,232], green:[26,122,74], red:[192,57,43]
+    };
 
-    function checkPage(needed=10){
-      if(y+needed>270){ doc.addPage(); y=14; }
+    let y = 0;
+
+    // ── ensure there is room; add page if not ──
+    function need(h){
+      if(y + h > BOTTOM){
+        doc.addPage();
+        y = MT;
+      }
     }
 
-    function sectionHeader(title){
-      checkPage(12);
-      doc.setFillColor(...navy);
-      doc.rect(0,y,W,8,'F');
-      doc.setFillColor(...gold);
-      doc.rect(0,y,3,8,'F');
-      doc.setTextColor(...white);
+    // ── coloured section header bar ──
+    function sectionBar(title){
+      need(12);
+      doc.setFillColor(...C.navy);
+      doc.rect(ML, y, CW, 8, 'F');
+      doc.setFillColor(...C.gold);
+      doc.rect(ML, y, 3, 8, 'F');
+      doc.setTextColor(...C.white);
       doc.setFont('helvetica','bold');
-      doc.setFontSize(9);
-      doc.text(title.toUpperCase(), 7, y+5.5);
-      y+=12;
+      doc.setFontSize(8.5);
+      doc.text(title.toUpperCase(), ML+6, y+5.5);
+      y += 11;
     }
 
-    function wrap(text, maxW, fontSize=8){
-      doc.setFontSize(fontSize);
-      return doc.splitTextToSize(String(text||''), maxW);
+    // ── wrapped text lines helper ──
+    function lines(txt, maxW, fs){
+      doc.setFontSize(fs||8);
+      return doc.splitTextToSize(String(txt||''), maxW);
     }
 
-    // ── HEADER BANNER ──
-    doc.setFillColor(...navy);
-    doc.rect(0,0,W,18,'F');
-    doc.setFillColor(...gold);
-    doc.rect(0,16,W,2,'F');
-    doc.setTextColor(...white);
+    // ══════════════════════════════════════
+    // HEADER BANNER
+    // ══════════════════════════════════════
+    doc.setFillColor(...C.navy);
+    doc.rect(0, 0, PW, 18, 'F');
+    doc.setFillColor(...C.gold);
+    doc.rect(0, 16, PW, 2, 'F');
+    doc.setTextColor(...C.white);
     doc.setFont('helvetica','bold');
     doc.setFontSize(14);
     doc.text('HILTON', 10, 10);
     doc.setFont('helvetica','normal');
     doc.setFontSize(9);
-    doc.text(state.hotel, 33, 10);
-    doc.setTextColor(...gold);
+    doc.text(state.hotel, 34, 10);
     doc.setFont('helvetica','italic');
-    doc.setFontSize(8);
-    doc.text('Front Desk Pre-Shift Brief  ·  '+today, 10, 15);
-    y=24;
+    doc.setFontSize(7.5);
+    doc.setTextColor(...C.gold);
+    doc.text('Front Desk Pre-Shift Brief  ·  ' + today, 10, 15.5);
+    y = 24;
 
-    // ── STATS ──
-    sectionHeader("Today's Overview");
-    const statKeys=[
-      {k:'arrivals',label:'Arrivals'},{k:'departures',label:'Departures'},
-      {k:'stayovers',label:'Stayovers'},{k:'occupancy',label:'Occupancy',pct:true},
-      {k:'oos',label:'Out of Service'},{k:'stayscore',label:'Stay Score'},
-      {k:'honors',label:'Honors Sign Ups (MTD)'}
+    // ══════════════════════════════════════
+    // STATS GRID
+    // ══════════════════════════════════════
+    sectionBar("Today's Overview");
+    const statDefs=[
+      {k:'arrivals',  label:'Arrivals'},
+      {k:'departures',label:'Departures'},
+      {k:'stayovers', label:'Stayovers'},
+      {k:'occupancy', label:'Occupancy', pct:true},
+      {k:'oos',       label:'Out of Service'},
+      {k:'stayscore', label:'Stay Score'},
+      {k:'honors',    label:'Honors Sign Ups (MTD)'},
     ];
-    const cols=4, cellW=(W-20)/cols, cellH=16;
-    statKeys.forEach((s,i)=>{
-      const col=i%cols, row=Math.floor(i/cols);
-      if(col===0 && i>0) checkPage(cellH+2);
-      const cx=10+col*cellW, cy=y+row*cellH;
-      doc.setFillColor(...lightgray);
-      doc.roundedRect(cx,cy,cellW-2,cellH-1,1,1,'F');
-      doc.setDrawColor(...[200,213,232]);
-      doc.roundedRect(cx,cy,cellW-2,cellH-1,1,1,'S');
-      doc.setTextColor(...midgray);
+    const SCOLS=4, SCW=(CW)/SCOLS, SCH=17;
+    const statRows=Math.ceil(statDefs.length/SCOLS);
+    need(statRows*SCH+4);
+    statDefs.forEach((s,i)=>{
+      const col=i%SCOLS, row=Math.floor(i/SCOLS);
+      const cx=ML+col*SCW, cy=y+row*SCH;
+      doc.setFillColor(...C.offwhite);
+      doc.roundedRect(cx+0.5,cy,SCW-1,SCH-1,1,1,'F');
+      doc.setDrawColor(...C.border);
+      doc.roundedRect(cx+0.5,cy,SCW-1,SCH-1,1,1,'S');
       doc.setFont('helvetica','normal');
       doc.setFontSize(6);
-      doc.text(s.label.toUpperCase(), cx+3, cy+4);
-      doc.setTextColor(...navy);
+      doc.setTextColor(...C.muted);
+      doc.text(s.label.toUpperCase(), cx+3, cy+4.5);
       doc.setFont('helvetica','bold');
       doc.setFontSize(13);
-      const val=(state.stats[s.k]||'—')+(s.pct?'%':'');
-      doc.text(val, cx+3, cy+12);
+      doc.setTextColor(...C.navy);
+      doc.text((state.stats[s.k]||'—')+(s.pct?'%':''), cx+3, cy+13);
     });
-    const statRows=Math.ceil(statKeys.length/cols);
-    y+=statRows*cellH+6;
+    y += statRows*SCH + 6;
 
-    // ── ANNOUNCEMENTS ──
+    // ══════════════════════════════════════
+    // ANNOUNCEMENTS
+    // ══════════════════════════════════════
     if(state.announcements.length){
-      sectionHeader('Internal Announcements');
+      sectionBar('Internal Announcements');
       state.announcements.forEach(a=>{
-        checkPage(20);
-        const isUrgent=a.priority==='urgent';
-        const bodyLines=wrap(a.body,W-30,8);
-        const cardH=bodyLines.length*4.5+16;
-        doc.setFillColor(isUrgent?255:248,isUrgent?245:250,isUrgent?245:255);
-        doc.rect(10,y,W-20,cardH,'F');
-        doc.setDrawColor(isUrgent?192:200,isUrgent?57:213,isUrgent?43:232);
-        doc.rect(10,y,W-20,cardH,'S');
-        if(isUrgent){doc.setFillColor(...red);doc.rect(10,y,3,cardH,'F');}
-        // priority badge
-        const badgeX=13+(isUrgent?3:0);
+        const isUrgent = a.priority==='urgent';
+        const bodyL = lines(a.body, CW-10, 8);
+        const metaH = (a.author||a.time) ? 5 : 0;
+        const cardH = bodyL.length*4.5 + 16 + metaH;
+        need(cardH+3);
+        // card background
+        doc.setFillColor(isUrgent?255:248, isUrgent?248:250, isUrgent?248:255);
+        doc.rect(ML, y, CW, cardH, 'F');
+        doc.setDrawColor(...(isUrgent?C.red:C.border));
+        doc.rect(ML, y, CW, cardH, 'S');
+        // urgent left stripe
+        if(isUrgent){ doc.setFillColor(...C.red); doc.rect(ML,y,3,cardH,'F'); }
+        const tx = ML + (isUrgent?5:3);
+        // priority label
         doc.setFont('helvetica','bold');
         doc.setFontSize(6);
-        doc.setTextColor(...(isUrgent?red:[0,87,184]));
-        doc.text(a.priority.toUpperCase(), badgeX, y+5);
+        doc.setTextColor(...(isUrgent?C.red:C.blue));
+        doc.text(a.priority.toUpperCase(), tx, y+5);
         // title
         doc.setFont('helvetica','bold');
         doc.setFontSize(9);
-        doc.setTextColor(...(isUrgent?red:navy));
-        doc.text(a.title, badgeX, y+10);
+        doc.setTextColor(...(isUrgent?C.red:C.navy));
+        doc.text(a.title, tx, y+10.5);
         // body
         doc.setFont('helvetica','normal');
         doc.setFontSize(8);
-        doc.setTextColor(...midgray);
-        bodyLines.forEach((l,li)=>doc.text(l,badgeX,y+15+li*4.5));
+        doc.setTextColor(...C.muted);
+        bodyL.forEach((l,li)=>doc.text(l, tx, y+16+li*4.5));
         // meta
         if(a.author||a.time){
           doc.setFontSize(6.5);
-          doc.setTextColor(138,154,176);
-          doc.text((a.author?'Posted by '+a.author:'')+(a.time?' · '+a.time:''),badgeX,y+cardH-2);
+          doc.setTextColor(...C.faint);
+          const meta=(a.author?'Posted by '+a.author:'')+(a.time?' · '+a.time:'');
+          doc.text(meta, tx, y+cardH-2);
         }
-        y+=cardH+4;
+        y += cardH+4;
       });
     }
 
-    // ── GROUPS ──
+    // ══════════════════════════════════════
+    // GROUPS
+    // ══════════════════════════════════════
     if(state.groups.length){
-      sectionHeader('Groups — In House & Upcoming');
+      sectionBar('Groups — In House & Upcoming');
       state.groups.forEach(g=>{
-        checkPage(30);
+        // Estimate total height for this group
+        const detailItems=[
+          g.arrival&&g.departure ? g.arrival+' – '+g.departure : null,
+          g.rooms, g.contact, g.space, g.fb
+        ].filter(Boolean);
+        const detailRows=Math.ceil(detailItems.length/2);
+        const noteL = g.notes ? lines(g.notes, CW-8, 7.5) : [];
+        const noteH = noteL.length ? noteL.length*4.5+7 : 0;
+        const groupH = 10 + detailRows*9 + noteH + 6;
+        need(groupH);
+
         // group title bar
         doc.setFillColor(235,240,248);
-        doc.rect(10,y,W-20,7,'F');
-        doc.setDrawColor(...[200,213,232]);
-        doc.rect(10,y,W-20,7,'S');
+        doc.rect(ML, y, CW, 8, 'F');
+        doc.setDrawColor(...C.border);
+        doc.rect(ML, y, CW, 8, 'S');
         doc.setFont('helvetica','bold');
         doc.setFontSize(8.5);
-        doc.setTextColor(...navy);
-        doc.text(g.name, 13, y+5);
+        doc.setTextColor(...C.navy);
+        doc.text(g.name, ML+3, y+5.5);
         const pill=g.status==='inhouse'?'IN HOUSE':'UPCOMING';
-        const pillColor=g.status==='inhouse'?green:navy;
-        doc.setFont('helvetica','bold');
         doc.setFontSize(6);
-        doc.setTextColor(...pillColor);
-        doc.text(pill, W-20, y+5, {align:'right'});
-        y+=9;
-        // detail grid
-        const details=[
+        doc.setTextColor(...(g.status==='inhouse'?C.green:C.blue));
+        doc.text(pill, ML+CW-3, y+5.5, {align:'right'});
+        y+=10;
+
+        // detail pairs
+        const defs=[
           g.arrival&&g.departure?{l:'Dates',v:g.arrival+' – '+g.departure}:null,
           g.rooms?{l:'Room Block',v:g.rooms}:null,
           g.contact?{l:'Contact',v:g.contact}:null,
           g.space?{l:'Meeting Space',v:g.space}:null,
           g.fb?{l:'F&B',v:g.fb}:null,
         ].filter(Boolean);
-        const dcols=2, dw=(W-22)/dcols;
-        details.forEach((d,di)=>{
-          const dc=di%dcols, dr=Math.floor(di/dcols);
-          if(dc===0&&di>0) checkPage(8);
-          const dx=11+dc*dw, dy2=y+dr*8;
+        const DCW=(CW-2)/2;
+        defs.forEach((d,di)=>{
+          const dc=di%2, dr=Math.floor(di/2);
+          const dx=ML+1+dc*DCW, dy=y+dr*9;
           doc.setFont('helvetica','bold');
           doc.setFontSize(6.5);
-          doc.setTextColor(...midgray);
-          doc.text(d.l.toUpperCase()+': ', dx, dy2+4);
+          doc.setTextColor(...C.muted);
+          doc.text(d.l.toUpperCase()+': ', dx, dy+4);
           const lw=doc.getTextWidth(d.l.toUpperCase()+': ');
           doc.setFont('helvetica','normal');
-          doc.setTextColor(...darktext);
-          const lines=wrap(d.v,dw-lw-2,6.5);
-          doc.text(lines[0]||'', dx+lw, dy2+4);
+          doc.setTextColor(...C.text);
+          const vlines=lines(d.v, DCW-lw-2, 6.5);
+          doc.text(vlines[0]||'', dx+lw, dy+4);
         });
-        const detailRows=Math.ceil(details.length/dcols);
-        y+=detailRows*8+2;
-        if(g.notes){
-          checkPage(10);
-          doc.setFillColor(240,243,248);
-          const noteLines=wrap(g.notes,W-28,7.5);
-          const noteH=noteLines.length*4.5+5;
-          doc.rect(10,y,W-20,noteH,'F');
-          doc.setDrawColor(0,87,184);
-          doc.line(10,y,10,y+noteH);
+        y += detailRows*9+2;
+
+        // notes
+        if(noteL.length){
+          need(noteH+3);
+          doc.setFillColor(...C.offwhite);
+          doc.rect(ML, y, CW, noteH, 'F');
+          doc.setFillColor(...C.blue);
+          doc.rect(ML, y, 2.5, noteH, 'F');
           doc.setFont('helvetica','italic');
           doc.setFontSize(7.5);
-          doc.setTextColor(...midgray);
-          noteLines.forEach((l,li)=>doc.text(l,13,y+4+li*4.5));
+          doc.setTextColor(...C.muted);
+          noteL.forEach((l,li)=>doc.text(l, ML+5, y+5+li*4.5));
           y+=noteH+3;
         }
-        y+=4;
+        y+=5;
       });
     }
 
-    // ── VIP TABLE ──
+    // ══════════════════════════════════════
+    // VIP TABLE
+    // ══════════════════════════════════════
     if(state.vips.length){
-      sectionHeader('VIP Arrivals & Site Visits');
+      sectionBar('VIP Arrivals & Site Visits');
       doc.autoTable({
         startY: y,
-        margin:{left:10,right:10},
+        margin:{left:ML, right:MR},
         head:[['Room #','Room Type','Status','Arrival','Guest Name','Notes']],
-        body: state.vips.map(v=>[v.room,v.roomType,v.status,v.arrival,v.name,v.notes||'']),
-        headStyles:{fillColor:navy,textColor:white,fontSize:7,fontStyle:'bold',cellPadding:3},
-        bodyStyles:{fontSize:7.5,cellPadding:3,textColor:darktext},
-        alternateRowStyles:{fillColor:lightgray},
+        body: state.vips.map(v=>[v.room||'',v.roomType||'',v.status||'',v.arrival||'',v.name||'',v.notes||'']),
+        headStyles:{fillColor:C.navy, textColor:C.white, fontSize:7, fontStyle:'bold', cellPadding:3},
+        bodyStyles:{fontSize:7.5, cellPadding:3, textColor:C.text, overflow:'linebreak'},
+        alternateRowStyles:{fillColor:C.offwhite},
         columnStyles:{
-          0:{cellWidth:16,fontStyle:'bold'},
+          0:{cellWidth:16, fontStyle:'bold'},
           1:{cellWidth:20},
-          2:{cellWidth:16},
+          2:{cellWidth:15},
           3:{cellWidth:22},
-          4:{cellWidth:38,fontStyle:'bold'},
+          4:{cellWidth:38, fontStyle:'bold'},
           5:{cellWidth:'auto'},
         },
         didParseCell(data){
-          if(data.section==='body'&&data.column.index===2){
-            data.cell.styles.textColor=green;
+          if(data.section==='body' && data.column.index===2){
+            data.cell.styles.textColor=C.green;
             data.cell.styles.fontStyle='bold';
           }
-        }
+        },
+        didDrawPage(data){ y = data.cursor.y; }
       });
-      y=doc.lastAutoTable.finalY+6;
+      y = doc.lastAutoTable.finalY + 6;
     }
 
-    doc.save(`PreShift-Brief-${dateFile}.pdf`);
+    doc.save('PreShift-Brief-'+dateFile+'.pdf');
+
   } catch(err){
     alert('PDF generation failed: '+err.message);
     console.error(err);
